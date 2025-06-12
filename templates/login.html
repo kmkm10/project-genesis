@@ -8,11 +8,15 @@
 <body>
     <div class="auth-container">
         <h1>ログイン</h1>
-        {% with messages = get_flashed_messages() %}
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flash-error">{{ messages[0] }}</div>
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
+
         <form method="post">
             <div class="form-group">
                 <label for="username">ユーザー名</label>
@@ -24,7 +28,16 @@
             </div>
             <button type="submit" class="auth-btn">ログイン</button>
         </form>
-        <p>アカウントがありませんか？ <a href="{{ url_for('signup') }}">ユーザー登録</a></p>
+        
+        <!-- ▼▼▼【ここが追加された部分】▼▼▼ -->
+        <p class="auth-link">
+            <a href="{{ url_for('forgot_password') }}">パスワードをお忘れですか？</a>
+        </p>
+        <!-- ▲▲▲【ここまでが追加された部分】▲▲▲ -->
+
+        <p class="auth-link">
+            アカウントがありませんか？ <a href="{{ url_for('signup') }}">ユーザー登録</a>
+        </p>
     </div>
 </body>
 </html>
