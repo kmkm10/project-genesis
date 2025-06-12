@@ -300,5 +300,49 @@ def update_player_state(user_id):
     finally:
         if conn: cur.close(); conn.close()
 
+# ▼▼▼【ここからデバッグ用ルートを追加】▼▼▼
+@app.route('/debug-schema')
+def debug_schema():
+    """
+    現在のデータベースの'users'テーブルの構造を確認するための特別なページ。
+    本番運用時には削除してください。
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = get_cursor(conn)
+        
+        if IS_PRODUCTION:
+            # PostgreSQL用のクエリ
+            cur.execute("""
+                SELECT column_name, data_type 
+                FROM information_schema.columns
+                WHERE table_name = 'users';
+            """)
+        else:
+            # SQLite用のクエリ
+            cur.execute("PRAGMA table_info(users);")
+        
+        schema_info = cur.fetchall()
+        
+        # 結果を整形してHTMLとして表示
+        output = "<h1>'users' Table Schema:</h1><ul>"
+        if IS_PRODUCTION:
+            for row in schema_info:
+                output += f"<li>Column: <b>{row['column_name']}</b>, Type: {row['data_type']}</li>"
+        else: # SQLite
+            for row in schema_info:
+                output += f"<li>Column: <b>{row['name']}</b>, Type: {row['type']}</li>"
+        output += "</ul>"
+        return output
+
+    except Exception as e:
+        return f"<h1>An error occurred while checking schema:</h1><pre>{e}</pre>"
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+# ▲▲▲【ここまでデバッグ用ルートを追加】▲▲▲
+
 if __name__ == '__main__':
     app.run(debug=True)
