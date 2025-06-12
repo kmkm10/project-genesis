@@ -1,0 +1,250 @@
+/* /ProjectGenesis/static/css/style.css */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+header {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 1.8em;
+    color: #1a237e;
+    margin: 0;
+}
+
+h2 {
+    font-size: 1.4em;
+    color: #3f51b5;
+    border-bottom: 2px solid #c5cae9;
+    padding-bottom: 5px;
+    margin-top: 0;
+}
+
+.panel {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.action-btn {
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-btn:hover:not(:disabled) {
+    background-color: #303f9f;
+    transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+    background-color: #9e9e9e;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.action-btn strong {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.action-btn small {
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
+#research-status {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #e8eaf6;
+    border-radius: 4px;
+}
+
+footer {
+    margin-top: 30px;
+}
+
+#log-panel {
+    background-color: #263238;
+    color: #cfd8dc;
+    padding: 15px;
+    border-radius: 6px;
+    height: 150px;
+    overflow-y: auto;
+}
+#log-panel h3 {
+    margin-top: 0;
+    color: #fff;
+    border-bottom: 1px solid #455a64;
+    padding-bottom: 5px;
+}
+#log-panel ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+#log-panel li {
+    padding: 2px 0;
+    border-bottom: 1px solid #37474f;
+    font-size: 0.9em;
+}
+
+/* /ProjectGenesis/static/css/style.css の末尾に追記 */
+
+.header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.user-info {
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.logout-btn {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 8px;
+    background-color: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+.logout-btn:hover {
+    background-color: #5a6268;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.auth-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+.auth-container p {
+    text-align: center;
+    margin-top: 20px;
+}
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+/* style.css に追記 */
+.panel-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* style.css にモーダル用のスタイルを追記 */
+.panel-buttons { display: flex; gap: 10px; margin-top: 10px; }
+.panel-buttons button { flex-grow: 1; }
+
+.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+.modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; position: relative; }
+.close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+.close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
+
+#perm-upgrade-list .upgrade-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+#perm-upgrade-list h4 { margin-top: 0; }
+#perm-upgrade-list .upgrade-cost { font-weight: bold; }
+#perm-upgrade-list button { float: right; }
+
+/* style.css に追記 */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+.stat-card {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+}
+.stat-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 1em;
+    color: #555;
+}
+.stat-card p {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #3f51b5;
+}
