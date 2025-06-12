@@ -1,4 +1,5 @@
--- テーブルが存在すれば削除する命令を追加して、安全に再実行できるようにする
+-- Renderへの強制更新用コメント (2025/06/13)
+
 DROP TABLE IF EXISTS players;
 DROP TABLE IF EXISTS users;
 
