@@ -60,18 +60,22 @@ def signup():
         else:
             cur.execute(f'SELECT id FROM users WHERE username = {ph}', (username,))
             if cur.fetchone(): error = f"ユーザー名 '{username}' は既に登録されています。"
+
         if error is None:
-            cur.execute(f'INSERT INTO users (username, password) VALUES ({ph}, {ph}){" RETURNING id" if IS_PRODUCTION else ""}',
-                        (username, generate_password_hash(password)))
+            sql_insert_user = f'INSERT INTO users (username, password) VALUES ({ph}, {ph}){" RETURNING id" if IS_PRODUCTION else ""}'
+            cur.execute(sql_insert_user, (username, generate_password_hash(password)))
             new_user_id = cur.fetchone()['id'] if IS_PRODUCTION else cur.lastrowid
+            
             initial_facilities = json.dumps({k: 0 for k in FACILITIES})
-            cur.execute(f'''INSERT INTO players (user_id, last_update_time, research_points, money, total_rp_earned, 
+            sql_insert_player = f'''INSERT INTO players (user_id, last_update_time, research_points, money, total_rp_earned, 
                                    rp_per_second, money_per_second, civilization_level, unlocked_technologies, 
                                    researching_tech, facility_levels, evolution_points, genesis_shifts,
                                    perm_bonus_rp_level, perm_bonus_money_level, run_start_time)
-                   VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})''',
-                (new_user_id, time.time(), 10.0, 50.0, 0.0, 1.0, 0.5, 0, '[]', None, initial_facilities, 0, 0, 0, 0, time.time()))
+                   VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})'''
+            cur.execute(sql_insert_player, (new_user_id, time.time(), 10.0, 50.0, 0.0, 1.0, 0.5, 0, '[]', None, initial_facilities, 0, 0, 0, 0, time.time()))
+            
             conn.commit(); flash('登録が完了しました。ログインしてください。'); return redirect(url_for('login'))
+        
         flash(error); cur.close(); conn.close()
     return render_template('signup.html')
 
@@ -104,7 +108,8 @@ def forgot_password():
         user = cur.fetchone()
         if user:
             token = secrets.token_urlsafe(32); expiry = time.time() + 3600 
-            cur.execute(f'UPDATE users SET reset_token = {ph}, reset_token_expiry = {ph} WHERE id = {ph}', (token, expiry, user['id']))
+            sql_update_token = f'UPDATE users SET reset_token = {ph}, reset_token_expiry = {ph} WHERE id = {ph}'
+            cur.execute(sql_update_token, (token, expiry, user['id']))
             conn.commit()
             reset_link = url_for('reset_password', token=token, _external=True)
             print("--- パスワード再設定リンクが発行されました ---"); print(reset_link); print("-----------------------------------------")
@@ -126,7 +131,8 @@ def reset_password(token):
         if not password or password != password_confirm:
             flash('パスワードが一致しません。', 'error'); return redirect(url_for('reset_password', token=token))
         hashed_password = generate_password_hash(password)
-        cur.execute(f'UPDATE users SET password = {ph}, reset_token = NULL, reset_token_expiry = NULL WHERE id = {ph}', (hashed_password, user['id']))
+        sql_update_password = f'UPDATE users SET password = {ph}, reset_token = NULL, reset_token_expiry = NULL WHERE id = {ph}'
+        cur.execute(sql_update_password, (hashed_password, user['id']))
         conn.commit(); cur.close(); conn.close()
         flash('パスワードが正常に更新されました。新しいパスワードでログインしてください。', 'success'); return redirect(url_for('login'))
     return render_template('reset_password.html')
@@ -182,7 +188,7 @@ def perform_action():
         return jsonify({'success': True})
     except Exception as e: return jsonify({'success': False, 'message': f'サーバーエラー: {e}'}), 500
     finally:
-        if conn: conn.close()
+        if conn: cur.close(); conn.close()
 
 @app.route('/api/genesis_shift', methods=['POST'])
 @login_required
@@ -193,8 +199,13 @@ def genesis_shift():
         cur.execute(f'SELECT * FROM players WHERE user_id = {ph}', (user_id,)); player = cur.fetchone()
         if 'astronomy' not in json.loads(player['unlocked_technologies']): return jsonify({'success': False, 'message': '転生の条件を満たしていません。'})
         ep_gain = int(player['total_rp_earned'] ** 0.5 / 100)
-        base_rp = 1.0 + player['perm_bonus_rp_level'] * PERMANENT_UPGRADES['rp_bonus']['effect_per_level']
-        base_money = 0.5 + player['perm_bonus_money_level'] * PERMANENT_UPGRADES['money_bonus']['effect_per_level']
+        
+        # ▼▼▼【計算バグ修正箇所】▼▼▼
+        # 転生時は永続ボーナスを含めず、純粋な初期値にリセットする
+        base_rp = 1.0
+        base_money = 0.5
+        # ▲▲▲【計算バグ修正箇所】▲▲▲
+
         cur.execute(f'''
             UPDATE players SET last_update_time={ph}, research_points=10.0, money=50.0, total_rp_earned=0.0,
                 rp_per_second={ph}, money_per_second={ph}, civilization_level=0, unlocked_technologies='[]', 
@@ -203,7 +214,7 @@ def genesis_shift():
             (time.time(), base_rp, base_money, json.dumps({k: 0 for k in FACILITIES}), player['evolution_points'] + ep_gain, player['genesis_shifts'] + 1, time.time(), user_id))
         conn.commit(); return jsonify({'success': True, 'message': f'ジェネシス・シフト発動！ {ep_gain} EPを獲得しました！'})
     finally:
-        if conn: conn.close()
+        if conn: cur.close(); conn.close()
 
 @app.route('/api/purchase_permanent_upgrade', methods=['POST'])
 @login_required
@@ -218,11 +229,12 @@ def purchase_permanent_upgrade():
         target_column, current_level = upgrade_info['target_column'], player[upgrade_info['target_column']]
         cost = int(upgrade_info['base_cost'] * (upgrade_info['cost_increase_factor'] ** current_level))
         if player['evolution_points'] < cost: return jsonify({'success': False, 'message': 'EPが不足しています。'})
+        # f-stringでカラム名を動的に指定する必要がある
         cur.execute(f'UPDATE players SET evolution_points = {ph}, {target_column} = {ph} WHERE user_id = {ph}',
                      (player['evolution_points'] - cost, current_level + 1, user_id))
         conn.commit(); return jsonify({'success': True})
     finally:
-        if conn: conn.close()
+        if conn: cur.close(); conn.close()
 
 # --- ゲームロジック関数 ---
 def format_data_for_frontend(player_data, log=[]):
