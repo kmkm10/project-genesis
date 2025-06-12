@@ -1,15 +1,13 @@
-DROP TABLE IF EXISTS users;
+-- テーブルが存在すれば削除する命令を追加して、安全に再実行できるようにする
 DROP TABLE IF EXISTS players;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     id {auto_increment_syntax},
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    
-    -- ▼▼▼【ここから追記】▼▼▼
     reset_token TEXT,
     reset_token_expiry REAL
-    -- ▲▲▲【ここまで追記】▲▲▲
 );
 
 CREATE TABLE players (
