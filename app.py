@@ -2,7 +2,7 @@ import sqlite3
 import time
 import json
 import os
-import secrets # 安全なトークン生成用
+import secrets
 import psycopg2
 from psycopg2.extras import DictCursor
 from functools import wraps
@@ -52,47 +52,58 @@ def login_required(f):
 @app.route('/signup', methods=('GET', 'POST'))
 def signup():
     if request.method == 'POST':
-        username, password = request.form['username'], request.form['password']
-        conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
-        error = None
-        if not username: error = 'ユーザー名は必須です。'
-        elif not password: error = 'パスワードは必須です。'
-        else:
-            cur.execute(f'SELECT id FROM users WHERE username = {ph}', (username,))
-            if cur.fetchone(): error = f"ユーザー名 '{username}' は既に登録されています。"
+        conn = None
+        try:
+            username, password = request.form['username'], request.form['password']
+            conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
+            error = None
+            if not username: error = 'ユーザー名は必須です。'
+            elif not password: error = 'パスワードは必須です。'
+            else:
+                cur.execute(f'SELECT id FROM users WHERE username = {ph}', (username,))
+                if cur.fetchone(): error = f"ユーザー名 '{username}' は既に登録されています。"
 
-        if error is None:
-            sql_insert_user = f'INSERT INTO users (username, password) VALUES ({ph}, {ph}){" RETURNING id" if IS_PRODUCTION else ""}'
-            cur.execute(sql_insert_user, (username, generate_password_hash(password)))
-            new_user_id = cur.fetchone()['id'] if IS_PRODUCTION else cur.lastrowid
-            
-            initial_facilities = json.dumps({k: 0 for k in FACILITIES})
-            sql_insert_player = f'''INSERT INTO players (user_id, last_update_time, research_points, money, total_rp_earned, 
-                                   rp_per_second, money_per_second, civilization_level, unlocked_technologies, 
-                                   researching_tech, facility_levels, evolution_points, genesis_shifts,
-                                   perm_bonus_rp_level, perm_bonus_money_level, run_start_time)
-                   VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})'''
-            cur.execute(sql_insert_player, (new_user_id, time.time(), 10.0, 50.0, 0.0, 1.0, 0.5, 0, '[]', None, initial_facilities, 0, 0, 0, 0, time.time()))
-            
-            conn.commit(); flash('登録が完了しました。ログインしてください。'); return redirect(url_for('login'))
-        
-        flash(error); cur.close(); conn.close()
+            if error is None:
+                sql_insert_user = f'INSERT INTO users (username, password) VALUES ({ph}, {ph}){" RETURNING id" if IS_PRODUCTION else ""}'
+                cur.execute(sql_insert_user, (username, generate_password_hash(password)))
+                new_user_id = cur.fetchone()['id'] if IS_PRODUCTION else cur.lastrowid
+                initial_facilities = json.dumps({k: 0 for k in FACILITIES})
+                sql_insert_player = f'''INSERT INTO players (user_id, last_update_time, research_points, money, total_rp_earned, 
+                                       rp_per_second, money_per_second, civilization_level, unlocked_technologies, 
+                                       researching_tech, facility_levels, evolution_points, genesis_shifts,
+                                       perm_bonus_rp_level, perm_bonus_money_level, run_start_time)
+                       VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})'''
+                cur.execute(sql_insert_player, (new_user_id, time.time(), 10.0, 50.0, 0.0, 1.0, 0.5, 0, '[]', None, initial_facilities, 0, 0, 0, 0, time.time()))
+                conn.commit(); flash('登録が完了しました。ログインしてください。'); return redirect(url_for('login'))
+            flash(error)
+        except Exception as e:
+            print(f"Signup Error: {e}")
+            flash('登録中にエラーが発生しました。', 'error')
+        finally:
+            if conn: conn.close()
     return render_template('signup.html')
+
 
 @app.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        username, password = request.form['username'], request.form['password']
-        conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
-        cur.execute(f'SELECT * FROM users WHERE username = {ph}', (username,)); user = cur.fetchone()
-        cur.close(); conn.close()
-        error = None
-        if user is None: error = 'ユーザー名が違います。'
-        elif not check_password_hash(user['password'], password): error = 'パスワードが違います。'
-        if error is None:
-            session.clear(); session['user_id'], session['username'] = user['id'], user['username']
-            return redirect(url_for('index'))
-        flash(error)
+        conn = None
+        try:
+            username, password = request.form['username'], request.form['password']
+            conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
+            cur.execute(f'SELECT * FROM users WHERE username = {ph}', (username,)); user = cur.fetchone()
+            error = None
+            if user is None: error = 'ユーザー名が違います。'
+            elif not check_password_hash(user['password'], password): error = 'パスワードが違います。'
+            if error is None:
+                session.clear(); session['user_id'], session['username'] = user['id'], user['username']
+                return redirect(url_for('index'))
+            flash(error)
+        except Exception as e:
+            print(f"Login Error: {e}")
+            flash('ログイン中にエラーが発生しました。', 'error')
+        finally:
+            if conn: conn.close()
     return render_template('login.html')
 
 @app.route('/logout')
@@ -102,40 +113,60 @@ def logout():
 @app.route('/forgot_password', methods=('GET', 'POST'))
 def forgot_password():
     if request.method == 'POST':
-        username = request.form['username']
-        conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
-        cur.execute(f'SELECT * FROM users WHERE username = {ph}', (username,))
-        user = cur.fetchone()
-        if user:
-            token = secrets.token_urlsafe(32); expiry = time.time() + 3600 
-            sql_update_token = f'UPDATE users SET reset_token = {ph}, reset_token_expiry = {ph} WHERE id = {ph}'
-            cur.execute(sql_update_token, (token, expiry, user['id']))
-            conn.commit()
-            reset_link = url_for('reset_password', token=token, _external=True)
-            print("--- パスワード再設定リンクが発行されました ---"); print(reset_link); print("-----------------------------------------")
-        flash('入力されたユーザー名が存在する場合、パスワード再設定の手順が発行されます。', 'info')
-        cur.close(); conn.close()
+        conn = None
+        try:
+            username = request.form['username']
+            conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
+            cur.execute(f'SELECT * FROM users WHERE username = {ph}', (username,))
+            user = cur.fetchone()
+            if user:
+                token = secrets.token_urlsafe(32); expiry = time.time() + 3600 
+                sql_update_token = f'UPDATE users SET reset_token = {ph}, reset_token_expiry = {ph} WHERE id = {ph}'
+                cur.execute(sql_update_token, (token, expiry, user['id']))
+                conn.commit()
+                reset_link = url_for('reset_password', token=token, _external=True)
+                print("--- パスワード再設定リンクが発行されました ---"); print(reset_link); print("-----------------------------------------")
+            flash('入力されたユーザー名が存在する場合、パスワード再設定の手順が発行されます。', 'info')
+        except Exception as e:
+            print(f"Forgot Password Error: {e}")
+            flash('リクエスト処理中にエラーが発生しました。', 'error')
+        finally:
+            if conn: conn.close()
         return redirect(url_for('forgot_password'))
     return render_template('forgot_password.html')
 
 @app.route('/reset_password/<token>', methods=('GET', 'POST'))
 def reset_password(token):
-    conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
-    cur.execute(f'SELECT * FROM users WHERE reset_token = {ph}', (token,))
-    user = cur.fetchone()
-    if not user or user['reset_token_expiry'] < time.time():
-        flash('この再設定リンクは無効か、有効期限が切れています。', 'error'); cur.close(); conn.close()
+    conn = None
+    try:
+        conn = get_db_connection(); cur = get_cursor(conn); ph = get_sql_placeholder()
+        cur.execute(f'SELECT * FROM users WHERE reset_token = {ph} AND reset_token_expiry > {ph}', (token, time.time()))
+        user = cur.fetchone()
+        if not user:
+            flash('この再設定リンクは無効か、有効期限が切れています。', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        if request.method == 'POST':
+            password, password_confirm = request.form['password'], request.form['password_confirm']
+            if not password or password != password_confirm:
+                flash('パスワードが一致しません。', 'error'); return redirect(url_for('reset_password', token=token))
+            hashed_password = generate_password_hash(password)
+            sql_update_password = f'UPDATE users SET password = {ph}, reset_token = NULL, reset_token_expiry = NULL WHERE id = {ph}'
+            cur.execute(sql_update_password, (hashed_password, user['id']))
+            conn.commit()
+            flash('パスワードが正常に更新されました。新しいパスワードでログインしてください。', 'success'); return redirect(url_for('login'))
+    except Exception as e:
+        print(f"Reset Password Error: {e}")
+        flash('パスワードの更新中にエラーが発生しました。', 'error')
         return redirect(url_for('forgot_password'))
-    if request.method == 'POST':
-        password, password_confirm = request.form['password'], request.form['password_confirm']
-        if not password or password != password_confirm:
-            flash('パスワードが一致しません。', 'error'); return redirect(url_for('reset_password', token=token))
-        hashed_password = generate_password_hash(password)
-        sql_update_password = f'UPDATE users SET password = {ph}, reset_token = NULL, reset_token_expiry = NULL WHERE id = {ph}'
-        cur.execute(sql_update_password, (hashed_password, user['id']))
-        conn.commit(); cur.close(); conn.close()
-        flash('パスワードが正常に更新されました。新しいパスワードでログインしてください。', 'success'); return redirect(url_for('login'))
+    finally:
+        if conn: conn.close()
+        
     return render_template('reset_password.html')
+
+
+# (以降のゲームAPIとロジックは前回のバグ修正版と同じです)
+# ... (変更なし) ...
 
 # --- ゲーム本体とAPIのルート ---
 @app.route('/')
@@ -199,13 +230,8 @@ def genesis_shift():
         cur.execute(f'SELECT * FROM players WHERE user_id = {ph}', (user_id,)); player = cur.fetchone()
         if 'astronomy' not in json.loads(player['unlocked_technologies']): return jsonify({'success': False, 'message': '転生の条件を満たしていません。'})
         ep_gain = int(player['total_rp_earned'] ** 0.5 / 100)
-        
-        # ▼▼▼【計算バグ修正箇所】▼▼▼
-        # 転生時は永続ボーナスを含めず、純粋な初期値にリセットする
-        base_rp = 1.0
+        base_rp = 1.0 
         base_money = 0.5
-        # ▲▲▲【計算バグ修正箇所】▲▲▲
-
         cur.execute(f'''
             UPDATE players SET last_update_time={ph}, research_points=10.0, money=50.0, total_rp_earned=0.0,
                 rp_per_second={ph}, money_per_second={ph}, civilization_level=0, unlocked_technologies='[]', 
@@ -229,7 +255,6 @@ def purchase_permanent_upgrade():
         target_column, current_level = upgrade_info['target_column'], player[upgrade_info['target_column']]
         cost = int(upgrade_info['base_cost'] * (upgrade_info['cost_increase_factor'] ** current_level))
         if player['evolution_points'] < cost: return jsonify({'success': False, 'message': 'EPが不足しています。'})
-        # f-stringでカラム名を動的に指定する必要がある
         cur.execute(f'UPDATE players SET evolution_points = {ph}, {target_column} = {ph} WHERE user_id = {ph}',
                      (player['evolution_points'] - cost, current_level + 1, user_id))
         conn.commit(); return jsonify({'success': True})
