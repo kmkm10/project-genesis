@@ -22,6 +22,7 @@
                 </div>
                 <div class="user-info">
                     <span>ようこそ, <strong>{{ session.username }}</strong> さん</span>
+                    <a href="{{ url_for('profile') }}" class="logout-btn">プロフィール</a>
                     <a href="{{ url_for('logout') }}" class="logout-btn">ログアウト</a>
                 </div>
             </div>
