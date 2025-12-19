@@ -37,6 +37,18 @@ CREATE TABLE IF NOT EXISTS players (
 );
 """
 
+# contactsテーブル
+SQL_CREATE_CONTACTS_TABLE = """
+CREATE TABLE IF NOT EXISTS contacts (
+    id {auto_increment_syntax},
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    subject TEXT,
+    message TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
+"""
+
 # --- メイン処理 ---
 def initialize_database():
     is_production = 'DATABASE_URL' in os.environ
@@ -60,6 +72,7 @@ def initialize_database():
         
         # テーブルを（存在すれば）削除
         print("既存のテーブルを削除します...")
+        cur.execute("DROP TABLE IF EXISTS contacts;")
         cur.execute("DROP TABLE IF EXISTS players;")
         cur.execute("DROP TABLE IF EXISTS users;")
 
@@ -68,6 +81,8 @@ def initialize_database():
         cur.execute(SQL_CREATE_USERS_TABLE.format(auto_increment_syntax=auto_increment_syntax))
         print("players テーブルを作成中...")
         cur.execute(SQL_CREATE_PLAYERS_TABLE.format(auto_increment_syntax=auto_increment_syntax))
+        print("contacts テーブルを作成中...")
+        cur.execute(SQL_CREATE_CONTACTS_TABLE.format(auto_increment_syntax=auto_increment_syntax))
 
         conn.commit()
         print("データベースの初期化が完了しました。")

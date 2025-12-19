@@ -31,3 +31,12 @@ CREATE TABLE players (
     run_start_time REAL NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE TABLE contacts (
+    id {auto_increment_syntax},
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    subject TEXT,
+    message TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
