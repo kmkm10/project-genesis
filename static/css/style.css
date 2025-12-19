@@ -248,3 +248,61 @@ footer {
     font-weight: bold;
     color: #3f51b5;
 }
+
+/* プロフィールページ用スタイル */
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-section {
+    margin-bottom: 30px;
+}
+
+.profile-card {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-item:last-child {
+    border-bottom: none;
+}
+
+.profile-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.profile-value {
+    font-weight: bold;
+    color: #3f51b5;
+    font-size: 1.1em;
+}
+
+.profile-facility {
+    padding-left: 20px;
+    font-size: 0.95em;
+}
+
+.profile-intro {
+    line-height: 1.8;
+}
+
+.profile-intro p {
+    margin: 10px 0;
+    color: #333;
+}
+
+.profile-intro strong {
+    color: #3f51b5;
+}

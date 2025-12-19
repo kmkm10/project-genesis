@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール - Project Genesis</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#3f51b5">
+</head>
+
+<body>
+    <div id="game-container">
+        <header>
+            <h1>プロフィール</h1>
+            <div class="header-info">
+                <div class="user-info">
+                    <span>ようこそ, <strong>{{ session.username }}</strong> さん</span>
+                    <a href="{{ url_for('index') }}" class="logout-btn">ゲームに戻る</a>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">ログアウト</a>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="profile-container">
+                <div class="profile-section">
+                    <h2>基本情報</h2>
+                    <div class="profile-card">
+                        <div class="profile-item">
+                            <span class="profile-label">ユーザー名:</span>
+                            <span class="profile-value">{{ profile.username }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">現在の文明レベル:</span>
+                            <span class="profile-value">{{ profile.civilization_name }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>研究実績</h2>
+                    <div class="profile-card">
+                        <div class="profile-item">
+                            <span class="profile-label">累計獲得RP:</span>
+                            <span class="profile-value">{{ "%.2f"|format(profile.total_rp_earned) }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">解放した技術:</span>
+                            <span class="profile-value">{{ profile.unlocked_tech_count }} / {{ profile.total_tech_count }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">技術解放率:</span>
+                            <span class="profile-value">{{ "%.1f"|format((profile.unlocked_tech_count / profile.total_tech_count * 100) if profile.total_tech_count > 0 else 0) }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>次元研究実績</h2>
+                    <div class="profile-card">
+                        <div class="profile-item">
+                            <span class="profile-label">現在のEP:</span>
+                            <span class="profile-value">{{ profile.evolution_points }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">転生回数:</span>
+                            <span class="profile-value">{{ profile.genesis_shifts }} 回</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">RP永続ボーナス:</span>
+                            <span class="profile-value">Lv.{{ profile.perm_bonus_rp_level }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span class="profile-label">資金永続ボーナス:</span>
+                            <span class="profile-value">Lv.{{ profile.perm_bonus_money_level }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>施設情報</h2>
+                    <div class="profile-card">
+                        <div class="profile-item">
+                            <span class="profile-label">施設の総レベル:</span>
+                            <span class="profile-value">{{ profile.total_facility_levels }}</span>
+                        </div>
+                        {% for facility_id, level in profile.facility_levels.items() %}
+                            {% if level > 0 %}
+                                <div class="profile-item profile-facility">
+                                    <span class="profile-label">{{ facilities[facility_id]['name'] }}:</span>
+                                    <span class="profile-value">Lv.{{ level }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>プレイヤーの自己紹介</h2>
+                    <div class="profile-card profile-intro">
+                        <p>私は <strong>{{ profile.username }}</strong> です。</p>
+                        <p>現在、<strong>{{ profile.civilization_name }}</strong>の時代で文明を発展させています。</p>
+                        <p>これまでに <strong>{{ profile.genesis_shifts }}</strong> 回の転生を経験し、<strong>{{ profile.evolution_points }}</strong> EPを獲得しました。</p>
+                        <p>解放した技術は全 {{ profile.total_tech_count }} 種のうち <strong>{{ profile.unlocked_tech_count }}</strong> 種です。</p>
+                        {% if profile.genesis_shifts > 0 %}
+                            <p>永続ボーナスのおかげで、より効率的に文明を発展させることができています！</p>
+                        {% else %}
+                            <p>初めての周回を楽しんでいます。さらなる進化を目指して研究を続けます！</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

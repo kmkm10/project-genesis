@@ -173,6 +173,59 @@ def reset_password(token):
 @login_required
 def index(): return render_template('index.html')
 
+@app.route('/profile')
+@login_required
+def profile():
+    """プロフィールページを表示"""
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = get_cursor(conn)
+        ph = get_sql_placeholder()
+        user_id = session['user_id']
+        
+        # ユーザー情報を取得
+        cur.execute(f'SELECT * FROM users WHERE id = {ph}', (user_id,))
+        user = cur.fetchone()
+        
+        # プレイヤー情報を取得
+        cur.execute(f'SELECT * FROM players WHERE user_id = {ph}', (user_id,))
+        player = cur.fetchone()
+        
+        if not user or not player:
+            flash('プロフィール情報が見つかりません。', 'error')
+            return redirect(url_for('index'))
+        
+        # プロフィール情報を整形
+        unlocked_technologies = json.loads(player['unlocked_technologies'])
+        facility_levels = json.loads(player['facility_levels'])
+        civ_level = player['civilization_level']
+        
+        profile_data = {
+            'username': user['username'],
+            'total_rp_earned': player['total_rp_earned'],
+            'evolution_points': player['evolution_points'],
+            'genesis_shifts': player['genesis_shifts'],
+            'civilization_level': civ_level,
+            'civilization_name': CIVILIZATION_LEVELS.get(civ_level, {'name': '不明'})['name'],
+            'unlocked_tech_count': len(unlocked_technologies),
+            'total_tech_count': len(TECHNOLOGIES),
+            'facility_levels': facility_levels,
+            'total_facility_levels': sum(facility_levels.values()),
+            'perm_bonus_rp_level': player['perm_bonus_rp_level'],
+            'perm_bonus_money_level': player['perm_bonus_money_level'],
+        }
+        
+        return render_template('profile.html', profile=profile_data, facilities=FACILITIES)
+    except Exception as e:
+        print(f"Profile Error: {e}")
+        flash('プロフィール表示中にエラーが発生しました。', 'error')
+        return redirect(url_for('index'))
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+
 @app.route('/api/gamestate')
 @login_required
 def get_gamestate():
