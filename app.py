@@ -197,22 +197,26 @@ def profile():
             return redirect(url_for('index'))
         
         # プロフィール情報を整形
+        unlocked_technologies = json.loads(player['unlocked_technologies'])
+        facility_levels = json.loads(player['facility_levels'])
+        civ_level = player['civilization_level']
+        
         profile_data = {
             'username': user['username'],
             'total_rp_earned': player['total_rp_earned'],
             'evolution_points': player['evolution_points'],
             'genesis_shifts': player['genesis_shifts'],
-            'civilization_level': player['civilization_level'],
-            'civilization_name': CIVILIZATION_LEVELS[player['civilization_level']]['name'],
-            'unlocked_tech_count': len(json.loads(player['unlocked_technologies'])),
+            'civilization_level': civ_level,
+            'civilization_name': CIVILIZATION_LEVELS.get(civ_level, {'name': '不明'})['name'],
+            'unlocked_tech_count': len(unlocked_technologies),
             'total_tech_count': len(TECHNOLOGIES),
-            'facility_levels': json.loads(player['facility_levels']),
-            'total_facility_levels': sum(json.loads(player['facility_levels']).values()),
+            'facility_levels': facility_levels,
+            'total_facility_levels': sum(facility_levels.values()),
             'perm_bonus_rp_level': player['perm_bonus_rp_level'],
             'perm_bonus_money_level': player['perm_bonus_money_level'],
         }
         
-        return render_template('profile.html', profile=profile_data)
+        return render_template('profile.html', profile=profile_data, facilities=FACILITIES)
     except Exception as e:
         print(f"Profile Error: {e}")
         flash('プロフィール表示中にエラーが発生しました。', 'error')

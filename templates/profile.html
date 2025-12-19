@@ -97,7 +97,7 @@
                         {% for facility_id, level in profile.facility_levels.items() %}
                             {% if level > 0 %}
                                 <div class="profile-item profile-facility">
-                                    <span class="profile-label">{{ facility_id }}:</span>
+                                    <span class="profile-label">{{ facilities[facility_id]['name'] }}:</span>
                                     <span class="profile-value">Lv.{{ level }}</span>
                                 </div>
                             {% endif %}
