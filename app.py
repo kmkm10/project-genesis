@@ -344,5 +344,52 @@ def debug_schema():
             conn.close()
 # ▲▲▲【ここまでデバッグ用ルートを追加】▲▲▲
 
+# --- エナジードリンク LP とお問い合わせフォーム ---
+@app.route('/energy-drink')
+def energy_drink():
+    """エナジードリンクのランディングページ"""
+    return render_template('energy_drink.html')
+
+@app.route('/contact', methods=('GET', 'POST'))
+def contact():
+    """お問い合わせフォーム"""
+    if request.method == 'POST':
+        conn = None
+        try:
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip()
+            subject = request.form.get('subject', '').strip()
+            message = request.form.get('message', '').strip()
+            
+            error = None
+            if not name:
+                error = 'お名前は必須です。'
+            elif not email:
+                error = 'メールアドレスは必須です。'
+            elif not message:
+                error = 'お問い合わせ内容は必須です。'
+            
+            if error is None:
+                conn = get_db_connection()
+                cur = get_cursor(conn)
+                ph = get_sql_placeholder()
+                
+                sql_insert = f'INSERT INTO contacts (name, email, subject, message, created_at) VALUES ({ph}, {ph}, {ph}, {ph}, {ph})'
+                cur.execute(sql_insert, (name, email, subject, message, time.time()))
+                conn.commit()
+                
+                flash('お問い合わせを受け付けました。ありがとうございます。', 'success')
+                return redirect(url_for('contact'))
+            else:
+                flash(error, 'error')
+        except Exception as e:
+            print(f"Contact Form Error: {e}")
+            flash('お問い合わせの送信中にエラーが発生しました。', 'error')
+        finally:
+            if conn:
+                conn.close()
+    
+    return render_template('contact.html')
+
 if __name__ == '__main__':
     app.run(debug=True)

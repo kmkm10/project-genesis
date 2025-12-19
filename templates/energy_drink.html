@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS ENERGY - 未来を加速する</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/landing.css">
+</head>
+<body class="landing-page">
+    <nav class="lp-nav">
+        <div class="nav-container">
+            <div class="logo">GENESIS ENERGY</div>
+            <div class="nav-links">
+                <a href="#features">特徴</a>
+                <a href="#about">製品情報</a>
+                <a href="{{ url_for('contact') }}" class="cta-link">お問い合わせ</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">GENESIS ENERGY</h1>
+            <p class="hero-subtitle">進化する力。未来を加速する。</p>
+            <p class="hero-description">
+                科学とテクノロジーの融合から生まれた、次世代エナジードリンク。<br>
+                あなたの可能性を最大限に引き出します。
+            </p>
+            <a href="{{ url_for('contact') }}" class="hero-cta">今すぐ問い合わせる</a>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="section-container">
+            <h2 class="section-title">3つの革新的な特徴</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>瞬間覚醒</h3>
+                    <p>独自開発のブーストフォーミュラで、摂取後わずか15分で効果を実感。集中力とエネルギーが最高潮に。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧬</div>
+                    <h3>持続パワー</h3>
+                    <p>天然由来の成分により、クラッシュなしで6時間以上の持続的なエネルギー供給を実現。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌟</div>
+                    <h3>完全栄養設計</h3>
+                    <p>ビタミンB群、アミノ酸、抗酸化物質を最適バランスで配合。健康をサポートしながらパフォーマンスを向上。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="section-container">
+            <h2 class="section-title">製品情報</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>次世代エナジードリンク GENESIS ENERGY</h3>
+                    <p>
+                        <strong>GENESIS ENERGY</strong>は、最先端の栄養科学と厳選された天然成分を組み合わせた、
+                        革新的なエナジードリンクです。
+                    </p>
+                    <ul class="benefits-list">
+                        <li>カフェイン 150mg（最適な覚醒効果）</li>
+                        <li>タウリン 1000mg（持久力向上）</li>
+                        <li>ビタミンB群完全配合（エネルギー代謝サポート）</li>
+                        <li>L-カルニチン配合（脂肪燃焼促進）</li>
+                        <li>砂糖不使用・カロリーゼロ</li>
+                        <li>合成着色料・保存料不使用</li>
+                    </ul>
+                    <p class="price-info">
+                        <strong>価格：</strong>1本 250円（税込）<br>
+                        <strong>容量：</strong>250ml
+                    </p>
+                </div>
+                <div class="about-image">
+                    <div class="product-showcase">
+                        <div class="can-illustration">
+                            GENESIS<br>ENERGY
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="section-container">
+            <h2 class="section-title">利用者の声</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">
+                        "朝の眠気が一瞬で吹き飛びました！しかもクラッシュがないので、
+                        一日中集中力が続きます。"
+                    </p>
+                    <p class="testimonial-author">- IT エンジニア 28歳</p>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">
+                        "トレーニング前に飲むと、いつもより長時間運動できます。
+                        しかも砂糖不使用なのが嬉しい！"
+                    </p>
+                    <p class="testimonial-author">- フィットネストレーナー 32歳</p>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">
+                        "徹夜での論文執筆も、これがあれば乗り切れます。
+                        味も美味しくて飲みやすいです。"
+                    </p>
+                    <p class="testimonial-author">- 大学院生 25歳</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="section-container">
+            <h2 class="cta-title">GENESIS ENERGYで、あなたの可能性を解放しよう</h2>
+            <p class="cta-text">製品に関するご質問や、取扱店に関するお問い合わせはこちらから</p>
+            <a href="{{ url_for('contact') }}" class="hero-cta">お問い合わせフォームへ</a>
+        </div>
+    </section>
+
+    <footer class="lp-footer">
+        <div class="footer-container">
+            <p>&copy; 2024 GENESIS ENERGY. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}">Project Genesis へ戻る</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
