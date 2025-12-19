@@ -3,6 +3,7 @@ import time
 import json
 import os
 import secrets
+import re
 import psycopg2
 from psycopg2.extras import DictCursor
 from functools import wraps
@@ -366,6 +367,8 @@ def contact():
                 error = 'お名前は必須です。'
             elif not email:
                 error = 'メールアドレスは必須です。'
+            elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                error = 'メールアドレスの形式が正しくありません。'
             elif not message:
                 error = 'お問い合わせ内容は必須です。'
             
