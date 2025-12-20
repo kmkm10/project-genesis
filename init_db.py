@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS players (
 );
 """
 
+# researcher_copiesテーブル
+SQL_CREATE_RESEARCHER_COPIES_TABLE = """
+CREATE TABLE IF NOT EXISTS researcher_copies (
+    id {auto_increment_syntax},
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    copy_text TEXT NOT NULL,
+    category TEXT,
+    created_at REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+"""
+
 # --- メイン処理 ---
 def initialize_database():
     is_production = 'DATABASE_URL' in os.environ
@@ -60,6 +73,7 @@ def initialize_database():
         
         # テーブルを（存在すれば）削除
         print("既存のテーブルを削除します...")
+        cur.execute("DROP TABLE IF EXISTS researcher_copies;")
         cur.execute("DROP TABLE IF EXISTS players;")
         cur.execute("DROP TABLE IF EXISTS users;")
 
@@ -68,6 +82,8 @@ def initialize_database():
         cur.execute(SQL_CREATE_USERS_TABLE.format(auto_increment_syntax=auto_increment_syntax))
         print("players テーブルを作成中...")
         cur.execute(SQL_CREATE_PLAYERS_TABLE.format(auto_increment_syntax=auto_increment_syntax))
+        print("researcher_copies テーブルを作成中...")
+        cur.execute(SQL_CREATE_RESEARCHER_COPIES_TABLE.format(auto_increment_syntax=auto_increment_syntax))
 
         conn.commit()
         print("データベースの初期化が完了しました。")

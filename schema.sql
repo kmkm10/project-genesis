@@ -31,3 +31,13 @@ CREATE TABLE players (
     run_start_time REAL NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE TABLE researcher_copies (
+    id {auto_increment_syntax},
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    copy_text TEXT NOT NULL,
+    category TEXT,
+    created_at REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
