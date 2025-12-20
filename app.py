@@ -173,6 +173,87 @@ def reset_password(token):
 @login_required
 def index(): return render_template('index.html')
 
+@app.route('/copies')
+@login_required
+def copies():
+    """Display researcher copies showcase page"""
+    return render_template('copies.html')
+
+@app.route('/api/copies', methods=['GET'])
+@login_required
+def get_copies():
+    """Get all researcher copies"""
+    conn = None
+    cur = None
+    try:
+        conn = get_db_connection()
+        cur = get_cursor(conn)
+        ph = get_sql_placeholder()
+        
+        cur.execute(f'''
+            SELECT rc.id, rc.title, rc.copy_text, rc.category, rc.created_at, u.username 
+            FROM researcher_copies rc
+            JOIN users u ON rc.user_id = u.id
+            ORDER BY rc.created_at DESC
+        ''')
+        
+        copies = []
+        for row in cur.fetchall():
+            copies.append({
+                'id': row['id'],
+                'title': row['title'],
+                'copy_text': row['copy_text'],
+                'category': row['category'] or '未分類',
+                'created_at': row['created_at'],
+                'author': row['username']
+            })
+        
+        return jsonify({'success': True, 'copies': copies})
+    except Exception as e:
+        print(f"Get Copies Error: {e}")
+        return jsonify({'success': False, 'message': 'コピーの取得に失敗しました。'}), 500
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+@app.route('/api/copies', methods=['POST'])
+@login_required
+def add_copy():
+    """Add a new researcher copy"""
+    conn = None
+    cur = None
+    try:
+        data = request.json
+        title = data.get('title')
+        copy_text = data.get('copy_text')
+        category = data.get('category', '')
+        
+        if not title or not copy_text:
+            return jsonify({'success': False, 'message': 'タイトルと本文は必須です。'}), 400
+        
+        conn = get_db_connection()
+        cur = get_cursor(conn)
+        ph = get_sql_placeholder()
+        
+        sql_insert = f'''
+            INSERT INTO researcher_copies (user_id, title, copy_text, category, created_at)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph})
+        '''
+        cur.execute(sql_insert, (session['user_id'], title, copy_text, category, time.time()))
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'コピーを追加しました。'})
+    except Exception as e:
+        print(f"Add Copy Error: {e}")
+        return jsonify({'success': False, 'message': 'コピーの追加に失敗しました。'}), 500
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
 @app.route('/api/gamestate')
 @login_required
 def get_gamestate():

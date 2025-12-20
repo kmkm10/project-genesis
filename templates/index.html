@@ -21,6 +21,7 @@
                     文明: <span id="civ-name"></span>
                 </div>
                 <div class="user-info">
+                    <a href="{{ url_for('copies') }}" class="copies-link">コピー展示</a>
                     <span>ようこそ, <strong>{{ session.username }}</strong> さん</span>
                     <a href="{{ url_for('logout') }}" class="logout-btn">ログアウト</a>
                 </div>
