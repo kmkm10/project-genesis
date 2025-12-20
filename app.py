@@ -184,6 +184,7 @@ def copies():
 def get_copies():
     """Get all researcher copies"""
     conn = None
+    cur = None
     try:
         conn = get_db_connection()
         cur = get_cursor(conn)
@@ -212,8 +213,9 @@ def get_copies():
         print(f"Get Copies Error: {e}")
         return jsonify({'success': False, 'message': 'コピーの取得に失敗しました。'}), 500
     finally:
-        if conn:
+        if cur:
             cur.close()
+        if conn:
             conn.close()
 
 @app.route('/api/copies', methods=['POST'])
@@ -221,6 +223,7 @@ def get_copies():
 def add_copy():
     """Add a new researcher copy"""
     conn = None
+    cur = None
     try:
         data = request.json
         title = data.get('title')
@@ -246,8 +249,9 @@ def add_copy():
         print(f"Add Copy Error: {e}")
         return jsonify({'success': False, 'message': 'コピーの追加に失敗しました。'}), 500
     finally:
-        if conn:
+        if cur:
             cur.close()
+        if conn:
             conn.close()
 
 @app.route('/api/gamestate')
