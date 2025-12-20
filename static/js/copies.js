@@ -44,7 +44,12 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 document.getElementById('add-copy-modal').style.display = 'none';
@@ -56,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            console.error('Error adding copy:', error);
             showMessage('コピーの追加に失敗しました', 'error');
         });
     });
@@ -69,7 +75,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function loadCopies() {
     fetch('/api/copies')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 allCopies = data.copies;
@@ -79,6 +90,7 @@ function loadCopies() {
             }
         })
         .catch(error => {
+            console.error('Error loading copies:', error);
             showMessage('コピーの読み込みに失敗しました', 'error');
         });
 }
@@ -154,6 +166,30 @@ function escapeHtml(text) {
 }
 
 function showMessage(message, type) {
-    // Simple alert for now - could be improved with a toast notification
-    alert(message);
+    // Create a simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#4caf50' : '#f44336'};
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
 }
